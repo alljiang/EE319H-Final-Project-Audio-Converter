@@ -26,29 +26,59 @@ numFrames = frames
 array = obj.readframes(numFrames)
 max = 1
 
-out = open('output/' + name + '.audio', 'wb')
+out = open('output/' + name + '.txt', 'wb')
 i = 0
 
 # get amplify ratio
-while i < numFrames:
+while i < int(numFrames/int(inputBitrate / outputBitrate)):
     if (max < array[int(i)]): max = array[int(i)]
-    i += int((inputBitrate / outputBitrate))
+    i += 1
+
 out.write((i).to_bytes(4, byteorder="big", signed=False))
 ratio = 255. / float(max)
 i = 0
-while i < numFrames:
+x = 0
+
+toPrint = ""
+while i < int(numFrames/int(inputBitrate / outputBitrate)):
     level = int(array[int(i)]*ratio)
     if outputBitrate <= 8:
         out.write((level & 0xFF).to_bytes(1, byteorder="big", signed=False))
     elif outputBitrate <= 16:
         out.write((level & 0xFF).to_bytes(2, byteorder="big", signed=False))
     i += int(inputBitrate / outputBitrate)
+    out.write((x & 0xFF).to_bytes(1, byteorder="big", signed=False))
+    toPrint += str(level) + "\n"
+    x += 1
+# count = 0
+# for s in range(0, 1000):
+#     x = 0
+#     while x < 256:
+#         out.write((x & 0xFF).to_bytes(1, byteorder="big", signed=False))
+#         x += 1
+#         count += 1
+#     x = 254
+#     while x >= 0:
+#         out.write((x & 0xFF).to_bytes(1, byteorder="big", signed=False))
+#         x -= 1
+#         count += 1
+#
+# out.write((count).to_bytes(4, byteorder="big", signed=False))
+#
+# for s in range(0, 1000):
+#     x = 0
+#     while x < 256:
+#         out.write((x & 0xFF).to_bytes(1, byteorder="big", signed=False))
+#         x += 1
+#         print(x)
+#     x = 254
+#     while x >= 0:
+#         out.write((x & 0xFF).to_bytes(1, byteorder="big", signed=False))
+#         x -= 1
+#         print(x)
 
+print(toPrint)
 print('Frames Written: ' + str(i))
 out.close()
 
 obj.close()
-
-asdf = open('output/' + name + '.audio', 'rb')
-
-r = (asdf.read(10))
