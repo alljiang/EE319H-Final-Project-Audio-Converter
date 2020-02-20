@@ -10,7 +10,7 @@ import matplotlib.pyplot as pyplot
 # Use input 16 bit, 44.1 khz sample rate
 
 name = "menu"
-inputBitrate = 16
+inputBitrate = 8
 outputBitrate = 8
 
 obj = wave.open('input/' + name + '.wav','r')
@@ -26,6 +26,9 @@ numFrames = frames
 array = obj.readframes(numFrames)
 max = 1
 
+for a in range(0, 100):
+    print("\t" + str(array[a]))
+
 out = open('output/' + name + '.txt', 'wb')
 i = 0
 
@@ -35,47 +38,22 @@ while i < int(numFrames/int(inputBitrate / outputBitrate)):
     i += 1
 
 out.write((i).to_bytes(4, byteorder="big", signed=False))
-ratio = 255. / float(max)
+# ratio = 255. / float(max)
+ratio = 1
 i = 0
 x = 0
 
 toPrint = ""
 while i < int(numFrames/int(inputBitrate / outputBitrate)):
-    level = int(array[int(i)]*ratio)
+    level = int(array[int(i) * int(inputBitrate / outputBitrate)]*ratio)
     if outputBitrate <= 8:
         out.write((level & 0xFF).to_bytes(1, byteorder="big", signed=False))
     elif outputBitrate <= 16:
         out.write((level & 0xFF).to_bytes(2, byteorder="big", signed=False))
-    i += int(inputBitrate / outputBitrate)
-    out.write((x & 0xFF).to_bytes(1, byteorder="big", signed=False))
     toPrint += str(level) + "\n"
+    # print(str(level))
+    i += 1
     x += 1
-# count = 0
-# for s in range(0, 1000):
-#     x = 0
-#     while x < 256:
-#         out.write((x & 0xFF).to_bytes(1, byteorder="big", signed=False))
-#         x += 1
-#         count += 1
-#     x = 254
-#     while x >= 0:
-#         out.write((x & 0xFF).to_bytes(1, byteorder="big", signed=False))
-#         x -= 1
-#         count += 1
-#
-# out.write((count).to_bytes(4, byteorder="big", signed=False))
-#
-# for s in range(0, 1000):
-#     x = 0
-#     while x < 256:
-#         out.write((x & 0xFF).to_bytes(1, byteorder="big", signed=False))
-#         x += 1
-#         print(x)
-#     x = 254
-#     while x >= 0:
-#         out.write((x & 0xFF).to_bytes(1, byteorder="big", signed=False))
-#         x -= 1
-#         print(x)
 
 print(toPrint)
 print('Frames Written: ' + str(i))
