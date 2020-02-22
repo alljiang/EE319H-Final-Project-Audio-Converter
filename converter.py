@@ -4,12 +4,15 @@ import matplotlib.pyplot as pyplot
 #
 #   Output format:
 #   First 4 bytes is 32 bit integer, describes how many frames exist
-#   The rest is all data in format:
+#   The rest is all level data out of 255
 #
 #
-# Use input 16 bit, 44.1 khz sample rate
+# Use input 8 bit, 44.1 khz sample rate, mono
 
-name = "smash"
+# ====CONFIGURE HERE====
+name = "sine"
+scaleToMaxAmplitude = True
+# ======================
 
 obj = wave.open('input/' + name + '.wav', 'r')
 
@@ -18,6 +21,7 @@ framerate = obj.getframerate()
 frames = obj.getnframes()
 
 print('Framerate: ' + str(framerate))
+print('Sample Width: ' + str(sampleWidth))
 print('Number of Frames: ' + str(frames))
 numFrames = frames
 
@@ -40,18 +44,20 @@ while i < int(numFrames):
     i += 1
 
 out.write((int(i)).to_bytes(4, byteorder="big", signed=False))
-ratio = 255. / float(maxVal)
-print(str(ratio))
 # ratio = 1
+if scaleToMaxAmplitude:
+    ratio = 255. / float(maxVal)
+    print('Ratio: ' + str(ratio))
+else:
+    ratio = 1
 i = 0
 
 toPrint = ""
-while i/2 < int(numFrames):
-    level = int(array[i] * ratio)
+while i < int(numFrames):
+    level = max(1, min(int(array[i] * ratio), 255))
     out.write((level & 0xFF).to_bytes(1, byteorder="big", signed=False))
     toPrint += str(level) + "\n"
-    # print(str(level))
-    i += 2
+    i += 1
 
 print(toPrint)
 print('Frames Written: ' + str(int(i/2)))
