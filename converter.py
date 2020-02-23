@@ -10,7 +10,7 @@ import matplotlib.pyplot as pyplot
 # Use input 8 bit, 44.1 khz sample rate, mono
 
 # ====CONFIGURE HERE====
-name = "sine"
+name = "321go"
 scaleToMaxAmplitude = True
 # ======================
 
@@ -35,23 +35,22 @@ maxVal = 0
 #     print("\t" + str(array[a]))
 
 out = open('output/' + name + '.txt', 'wb')
+out.write((int(frames)).to_bytes(4, byteorder="big", signed=False))
 i = 0
 
-# get amplify ratio
-while i < int(numFrames):
-    if maxVal < array[int(i)]:
-        maxVal = array[int(i)]
-    i += 1
-
-out.write((int(i)).to_bytes(4, byteorder="big", signed=False))
-# ratio = 1
 if scaleToMaxAmplitude:
+    # get amplify ratio
+    while i < int(numFrames):
+        if maxVal < array[int(i)]:
+            maxVal = array[int(i)]
+        i += 1
+
     ratio = 255. / float(maxVal)
     print('Ratio: ' + str(ratio))
 else:
     ratio = 1
-i = 0
 
+i = 0
 toPrint = ""
 while i < int(numFrames):
     level = max(1, min(int(array[i] * ratio), 255))
@@ -60,7 +59,7 @@ while i < int(numFrames):
     i += 1
 
 print(toPrint)
-print('Frames Written: ' + str(int(i/2)))
+print('Frames Written: ' + str(int(i)))
 out.close()
 
 obj.close()
