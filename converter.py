@@ -10,8 +10,9 @@ import matplotlib.pyplot as pyplot
 # Use input 8 bit, 44.1 khz sample rate, mono
 
 # ====CONFIGURE HERE====
-name = "321go"
+name = "smash"
 scaleToMaxAmplitude = True
+middle = 128
 # ======================
 
 obj = wave.open('input/' + name + '.wav', 'r')
@@ -29,7 +30,7 @@ print("Reading audio...")
 array = obj.readframes(numFrames)
 print("Read complete!")
 
-maxVal = 0
+maxAmplitude = 0
 
 # for a in range(0, 100):
 #     print("\t" + str(array[a]))
@@ -41,24 +42,31 @@ i = 0
 if scaleToMaxAmplitude:
     # get amplify ratio
     while i < int(numFrames):
-        if maxVal < array[int(i)]:
-            maxVal = array[int(i)]
+        amplitude = array[int(i)] - middle
+        if maxAmplitude < amplitude:
+            maxAmplitude = amplitude
         i += 1
 
-    ratio = 255. / float(maxVal)
+    ratio = 255. / float(maxAmplitude)
     print('Ratio: ' + str(ratio))
 else:
     ratio = 1
 
 i = 0
 toPrint = ""
+sum = 0
 while i < int(numFrames):
-    level = max(1, min(int(array[i] * ratio), 255))
+    amplitude = array[i] - middle
+    level = max(1, min(int(amplitude * ratio + middle), 255))
     out.write((level & 0xFF).to_bytes(1, byteorder="big", signed=False))
-    toPrint += str(level) + "\n"
+    # toPrint += str(level) + "\n"
+    toPrint += str(level) + ","
+    if i < 10000:
+        sum += level
     i += 1
 
 print(toPrint)
+print(str(sum))
 print('Frames Written: ' + str(int(i)))
 out.close()
 
