@@ -1,5 +1,6 @@
 import wave, struct, math
 import matplotlib.pyplot as pyplot
+import os
 
 #
 #   Output format:
@@ -7,67 +8,73 @@ import matplotlib.pyplot as pyplot
 #   The rest is all level data out of 255
 #
 #
-# Use input 8 bit, 44.1 khz sample rate, mono
+# Use input 8 bit, 32 khz sample rate, mono
 
 # ====CONFIGURE HERE====
-name = "smash"
+# name = "321go"
+folderName = "input-misc"
 scaleToMaxAmplitude = True
 middle = 128
 # ======================
 
-obj = wave.open('input/' + name + '.wav', 'r')
+numFiles = len(os.listdir(os.getcwd() + '/' + folderName))
 
-sampleWidth = obj.getsampwidth()
-framerate = obj.getframerate()
-frames = obj.getnframes()
+for name in os.listdir(os.getcwd() + '/' + folderName):
 
-print('Framerate: ' + str(framerate))
-print('Sample Width: ' + str(sampleWidth))
-print('Number of Frames: ' + str(frames))
-numFrames = frames
+    obj = wave.open(folderName + '/' + name, 'r')
 
-print("Reading audio...")
-array = obj.readframes(numFrames)
-print("Read complete!")
+    sampleWidth = obj.getsampwidth()
+    framerate = obj.getframerate()
+    frames = obj.getnframes()
 
-maxAmplitude = 0
+    if framerate != 32000:
+        print("ERROR: Framerate not 32000 on file: " + name)
+        while(1): pass
 
-# for a in range(0, 100):
-#     print("\t" + str(array[a]))
+    print('Framerate: ' + str(framerate))
+    print('Sample Width: ' + str(sampleWidth))
+    print('Name: ' + str(name))
+    print('Number of Frames: ' + str(frames))
+    numFrames = frames
 
-out = open('output/' + name + '.txt', 'wb')
-out.write((int(frames)).to_bytes(4, byteorder="big", signed=False))
-i = 0
+    print("Reading audio...")
+    array = obj.readframes(numFrames)
+    print("Read complete!")
 
-if scaleToMaxAmplitude:
-    # get amplify ratio
+    maxAmplitude = 0
+
+    out = open('output/' + name.split('.')[0] + '.txt', 'wb')
+    out.write((int(frames)).to_bytes(4, byteorder="big", signed=False))
+    i = 0
+
+    if scaleToMaxAmplitude:
+        # get amplify ratio
+        while i < int(numFrames):
+            amplitude = array[int(i)] - middle
+            if maxAmplitude < amplitude:
+                maxAmplitude = amplitude
+            i += 1
+
+        ratio = 255. / float(maxAmplitude)
+    else:
+        ratio = 1
+
+    i = 0
+    toPrint = ""
+    sum = 0
     while i < int(numFrames):
-        amplitude = array[int(i)] - middle
-        if maxAmplitude < amplitude:
-            maxAmplitude = amplitude
+        amplitude = array[i] - middle
+        level = max(1, min(int(amplitude * ratio + middle), 255))
+        out.write((level & 0xFF).to_bytes(1, byteorder="big", signed=False))
+        # toPrint += str(level) + "\n"
+        toPrint += str(level) + ","
+        if i < 10000:
+            sum += level
         i += 1
 
-    ratio = 255. / float(maxAmplitude)
-    print('Ratio: ' + str(ratio))
-else:
-    ratio = 1
+    print('Frames Written: ' + str(int(i)))
+    out.close()
 
-i = 0
-toPrint = ""
-sum = 0
-while i < int(numFrames):
-    amplitude = array[i] - middle
-    level = max(1, min(int(amplitude * ratio + middle), 255))
-    out.write((level & 0xFF).to_bytes(1, byteorder="big", signed=False))
-    # toPrint += str(level) + "\n"
-    toPrint += str(level) + ","
-    if i < 10000:
-        sum += level
-    i += 1
+    obj.close()
 
-print(toPrint)
-print(str(sum))
-print('Frames Written: ' + str(int(i)))
-out.close()
-
-obj.close()
+    print('\n\n')
