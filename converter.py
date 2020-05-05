@@ -12,7 +12,7 @@ import os
 
 # ====CONFIGURE HERE====
 # name = "321go"
-folderName = "input-misc"
+folderName = "input-valvano"
 scaleToMaxAmplitude = True
 middle = 128
 # ======================
